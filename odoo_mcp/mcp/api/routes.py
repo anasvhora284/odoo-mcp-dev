@@ -84,7 +84,7 @@ async def get_all_models(module: Optional[str] = None):
         models = loader.get_module_models(module)
     else:
         models = loader.models.values()
-    return [m.model for m in models]
+    return sorted(set(m.model for m in models))
 
 
 @router.get("/models/{model_name}", response_model=Union[metadata.ModelMeta, ErrorResponse])
@@ -114,14 +114,29 @@ async def search_models(
         return ErrorResponse(error="Search index not available")
     
     results = indexer.search(q, fields)
-    return [SearchResult(**result) for result in results]
+    # Remove duplicates based on model name
+    seen = set()
+    unique_results = []
+    for result in sorted(results, key=lambda x: (-x['score'], x['model'])):
+        if result['model'] not in seen:
+            seen.add(result['model'])
+            unique_results.append(SearchResult(**result))
+    return unique_results
 
 
 @router.get("/models/{model_name}/fields", response_model=List[metadata.FieldMeta])
 async def get_model_fields(model_name: str):
     """Get all fields for a specific model"""
     if model_name in loader.models:
-        return loader.models[model_name].fields
+        # Return unique fields based on field name
+        fields = loader.models[model_name].fields
+        seen = set()
+        unique_fields = []
+        for field in sorted(fields, key=lambda x: x.name):
+            if field.name not in seen:
+                seen.add(field.name)
+                unique_fields.append(field)
+        return unique_fields
     return ErrorResponse(error="Model not found")
 
 
@@ -129,7 +144,15 @@ async def get_model_fields(model_name: str):
 async def get_model_views(model_name: str):
     """Get all views associated with a specific model"""
     if model_name in loader.models:
-        return loader.models[model_name].views
+        # Return unique views based on view_id
+        views = loader.models[model_name].views
+        seen = set()
+        unique_views = []
+        for view in sorted(views, key=lambda x: (x.priority, x.view_id)):
+            if view.view_id not in seen:
+                seen.add(view.view_id)
+                unique_views.append(view)
+        return unique_views
     return ErrorResponse(error="Model not found")
 
 
@@ -137,7 +160,15 @@ async def get_model_views(model_name: str):
 async def get_model_actions(model_name: str):
     """Get all actions associated with a specific model"""
     if model_name in loader.models:
-        return loader.models[model_name].actions
+        # Return unique actions based on action_id
+        actions = loader.models[model_name].actions
+        seen = set()
+        unique_actions = []
+        for action in sorted(actions, key=lambda x: x.action_id):
+            if action.action_id not in seen:
+                seen.add(action.action_id)
+                unique_actions.append(action)
+        return unique_actions
     return ErrorResponse(error="Model not found")
 
 
@@ -145,5 +176,13 @@ async def get_model_actions(model_name: str):
 async def get_model_menus(model_name: str):
     """Get all menu items associated with a specific model"""
     if model_name in loader.models:
-        return loader.models[model_name].menus
+        # Return unique menus based on menu_id
+        menus = loader.models[model_name].menus
+        seen = set()
+        unique_menus = []
+        for menu in sorted(menus, key=lambda x: (x.sequence, x.menu_id)):
+            if menu.menu_id not in seen:
+                seen.add(menu.menu_id)
+                unique_menus.append(menu)
+        return unique_menus
     return ErrorResponse(error="Model not found")
