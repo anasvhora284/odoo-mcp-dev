@@ -1,0 +1,7 @@
+**/*pycache*
+**/__pycache__/
+*.pycache
+*.pyc
+**/mcp_venv/*
+*.vscode
+odoo_mcp/.index

@@ -1,0 +1,30 @@
+# Odoo MCP Configuration
+
+# Paths configuration
+paths:
+  # Default Odoo installation path
+  odoo_path: "../../../odoo/odoo-18.0"
+  # List of addon paths to scan
+  addon_paths:
+    - "../../../odoo/odoo-18.0/addons"
+    - "../../../odoo/odoo-18.0/odoo/addons"
+    # Add custom addon paths here
+    # - "/path/to/custom/addons"
+# Cache configuration
+cache:
+  enabled: true
+  type: "sqlite"  # or "json"
+  path: ".cache/mcp.db"
+  
+# Server configuration
+server:
+  host: "0.0.0.0"
+  port: 8000
+  reload: true
+  workers: 1
+
+# Indexing configuration
+indexing:
+  enabled: true
+  path: ".index"
+  rebuild_on_startup: false
